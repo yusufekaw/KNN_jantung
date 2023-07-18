@@ -7,18 +7,43 @@ import seaborn as sns
 def Akurasi(y_test, y_pred):
     akurasi = np.round(accuracy_score(y_test, y_pred),2)
     return akurasi
+
 def Presisi(y_test, y_pred):
     presisi = np.round(precision_score(y_test, y_pred),2)
     return presisi
+
 def Recall(y_test, y_pred):
     recall = np.round(recall_score(y_test, y_pred),2)
     return recall
+
 def F1(y_test, y_pred):
     f1 = np.round(f1_score(y_test, y_pred),2)
     return f1
+
 def CM(y_test, y_pred):
     cm = confusion_matrix(y_test, y_pred)
     return cm
+
+def nilaiCM(cm):
+    # Inisialisasi variabel array untuk menyimpan TN, FP, FN, dan TP
+    TN = []
+    FP = []
+    FN = []
+    TP = []
+    T = []
+    F = []
+
+    # Menghitung nilai TN, FP, FN, dan TP dari setiap matriks CM
+    for i in range(len(cm)):
+        tn, fp, fn, tp = cm[i].ravel()
+        TN.append(tn)
+        FP.append(fp)
+        FN.append(fn)
+        TP.append(tp)
+        T.append(tn+tp)
+        F.append(fn+fp)
+    return TN, FP, FN, TP, T, F
+
 def Metrik(y_test, prediksi):
     akurasi, presisi, recall, f1, cm = [], [], [], [], []
     for i in range(prediksi.shape[1]):
@@ -33,6 +58,7 @@ def Metrik(y_test, prediksi):
         f1.append(nilai_f1)
         cm.append(nilai_cm)
     return akurasi, presisi, recall, f1, cm
+
 def maksMetrik(metrik):
     maks_akurasi = metrik['akurasi'].max()
     maks_presisi = metrik['presisi'].max()
