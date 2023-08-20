@@ -74,6 +74,7 @@ def maksMetrik(metrik):
         "Recall tertinggi ",maks_recall," pada K ",k_maks_recall,"\n"
         "Skor F1 tertinggi ",maks_f1," pada K ",k_maks_f1
     )
+
 def visualisaiMetrik(metrik):
     # Plot grup bar chart
     plt.figure(figsize=(8, 6))
@@ -96,11 +97,12 @@ def visualisaiMetrik(metrik):
     # Mengatur label sumbu x
     plt.xticks(index + bar_width, metrik['k'])
 
-    # Menampilkan legenda
-    plt.legend()
+    # Menampilkan legenda di luar plot dan mengatur posisi legenda
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Menampilkan plot
     plt.show()
+
 def visualisasiCM(cm, acak_K):
     # Mengatur ukuran dan layout
     fig, axes = plt.subplots(nrows=1, ncols=len(cm), figsize=(15, 4))

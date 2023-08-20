@@ -58,6 +58,7 @@ def Prediksi(X_train, y_train, X_test, k):
     jarak = pd.DataFrame(jarak)
     #jarak.index = [X_test.index[i] for i in range(len(X_test))]
     return jarak'''
+    
 def Jarak(X_test, X_train):
      # Menghitung jarak antara data testing dan data training
     jarak = euclidean_distances(X_test, X_train)
