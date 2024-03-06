@@ -8,7 +8,7 @@ def ambilData():
     # Path ke file dataset
     #path = "dataset/heart.csv"
     # Membaca dataset menggunakan Pandas
-    dataset = pd.read_csv("/home/ucup/projects/python/hans/data/dataset/heart.csv")
+    dataset = pd.read_csv("E:\projects\python\KNN_jantung\data\dataset\heart.csv")
     return dataset
 
 #Informasi kolom bertipe data object
