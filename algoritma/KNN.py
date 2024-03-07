@@ -94,6 +94,15 @@ def hasilJarakTerdekat(X_test, y_train, terdekat, indeks):
             hasil_jarak_terdekat.append(data_jarak_terdekat)
     return hasil_jarak_terdekat#, klasifikasi
 
+def trainLabel(X_fold, fold_prediksi):
+    indexing = []
+    for i in range(len(X_fold)):
+        idx = [X_fold.index[i]] #kombinasi index data testing dengan hasil prediksi
+        indexing.append(idx) #disimpan dalam variabel klasifikasi
+    df_idx = pd.DataFrame(indexing)
+    label = df_idx.join(fold_prediksi)
+    return label
+    
 def Klasifikasi(X_test, prediksi, y_test):
     klasifikasi = []
     for i in range(len(X_test)):

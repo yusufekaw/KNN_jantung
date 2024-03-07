@@ -1,6 +1,7 @@
 from data.pemrosesanData import ambilData, infoKolom, labelEncode, MinMax, mappingFitur, cetak_kolom_kategorikal
-from algoritma.KNN import K, splitDataset, Prediksi, Jarak, jarakTerdekat, hasilJarakTerdekat, acakK, Klasifikasi, semuaPrediksi
-from pengujian.metrik_evaluasi import Akurasi, Presisi, Recall, F1, CM
+from algoritma.KNN import K, splitDataset, Prediksi, Jarak, jarakTerdekat, hasilJarakTerdekat, acakK, trainLabel, Klasifikasi, semuaPrediksi
+from algoritma.KFold import Split
+from pengujian.metrik_evaluasi import Akurasi, Presisi, Recall, F1, CM, nilaiCM, Metrik, visualisaiMetrik, maksMetrik, visualisasiCMklasifikasi, visualisasiCM
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,15 +15,12 @@ if __name__ == '__main__':
     print ("\t\tHasil Import Dataset") 
     print (dataset) # menampilkan dataset
 
-    
     print("\t\tInformasi Kolom dataset")
     dataset.info() #informasi kolom dataset
 
-    
     print("\t\tInformasi Kolom kategorikal")
     cetak_kolom_kategorikal(dataset) # menampilkan informasi kolom kategorikal (object)
 
-    
     dataset = labelEncode(dataset) # encoding nilai kategorikal menjadi numerikal
     
     print ("\t\tDataset Yang Telah Diencoding")
@@ -31,143 +29,119 @@ if __name__ == '__main__':
     dataset = MinMax(dataset) # Normalisasi dataset
     print ("\t\tDataset Yang Telah dinormalisasi")
     print (dataset) # menampilkan dataset yang telah dinormalisasi
-    
-    '''
-    # Mengubah nama fitur
-    dataset, nama_fitur = mappingFitur(dataset)
-    
-    # menampilkan perubahan nama fitur
-    print ("\t\tMenampilkan Perubahan Nama Fitur")
-    for lama, baru in nama_fitur.items():
-        print(lama, ":", baru)
-
-    # menampilkan dataset yang telah diubah namafiturnya
-    print ("\t\tMenampilkan Dataset Yang Telah Diubah Nama Fiturnya")
-    print (dataset)
-    '''
-
-    acak_K = acakK()
-    maks_K = np.max(acak_K)
-    print("nilai k acak yang dihasilkan :", acak_K)
 
     kolom_target = 'HeartDisease' #membuang kolom HeartDisease , digunakan sebagai target
-    k = K()
-    print("Nilai K yang dihasilkan : ",k)
-    #split dataset (training dan testing)
+    #split data training dan testing
     X_train, X_test, y_train, y_test = splitDataset(dataset, kolom_target, test_size=0.2, random_state=42)
 
-    print("Data Training\n") 
-    print(X_train) # menampilkan data training
-    print("Data Testing\n") 
-    print(X_test) # menampilkan data testing
+    #split kFOld
+    X_train_fold1, X_train_fold2, y_train_fold1, y_train_fold2 = Split(X_train, y_train)
 
-    '''
-    #menampilkan jarak data training dengan data testing
-    jarak = Jarak(X_test, X_train)
-    print(jarak.transpose())
-    '''    
+    #data training Fold 1
+    print("\t\t Data Training KFold 1")
+    print(X_train_fold1)
+
+    #data training Fold 2
+    print("\t\t Data Training KFold 2")
+    print(X_train_fold2)
+
+    k_fold = [3] #menentukan k untuk k-fold
     
+    #menjadikan data training fold 1 sebagai validasi dan data training fold 2 sebagai testing
+    #mencari ketetanggaan terdekat data training 2 ke data training 1
+    terdekat_fold2, indeks_fold2 = jarakTerdekat(X_train_fold2, X_train_fold1, y_train_fold1, 3)
+    # mencari jarak terdekat
+    fold2_hasil_jarak_terdekat = hasilJarakTerdekat(X_train_fold2, y_train_fold1, terdekat_fold2, indeks_fold2) 
+    #konversi data frame
+    fold2_hasil_jarak_terdekat = pd.DataFrame(fold2_hasil_jarak_terdekat, columns=["Fold2", "Fold1", "Jarak", "Kelas"])
+    print(fold2_hasil_jarak_terdekat) #menampilkan hasil jarak terdekat
+    #validasi kelas data training fold2
+    y_validasi_fold2 = semuaPrediksi(k_fold, X_train_fold1, y_train_fold1, X_train_fold2)
+    #konversi kelas validasi menjadi data frame
+    y_validasi_fold2 = pd.DataFrame(np.transpose(y_validasi_fold2), columns=['validasi'])
+    #ambil index data training fold2
+    y_validasi_fold2.index = X_train_fold2.index
+    #cetak kelas hasil validasi
+    y_train_subset = y_train.loc[y_validasi_fold2.index]
+    combined_df_fold2 = pd.concat([y_train_subset.rename('target'), y_validasi_fold2], axis=1)
+    print(combined_df_fold2)
+
+    #menjadikan data training fold 2 sebagai validasi dan data training fold 1 sebagai testing
+    #mencari ketetanggaan terdekat data training 2 ke data training 1
+    terdekat_fold1, indeks_fold1 = jarakTerdekat(X_train_fold1, X_train_fold2, y_train_fold2, 3)
+    # mencari jarak terdekat
+    fold1_hasil_jarak_terdekat = hasilJarakTerdekat(X_train_fold1, y_train_fold2, terdekat_fold1, indeks_fold1) 
+    #konversi data frame
+    fold1_hasil_jarak_terdekat = pd.DataFrame(fold1_hasil_jarak_terdekat, columns=["Fold1", "Fold2", "Jarak", "Kelas"])
+    print(fold1_hasil_jarak_terdekat) #menampilkan hasil jarak terdekat
+    #validasi kelas data training fold2
+    y_validasi_fold1 = semuaPrediksi(k_fold, X_train_fold2, y_train_fold2, X_train_fold1)
+    #konversi kelas validasi menjadi data frame
+    y_validasi_fold1 = pd.DataFrame(np.transpose(y_validasi_fold1), columns=['validasi'])
+    #ambil index data training fold2
+    y_validasi_fold1.index = X_train_fold1.index
+    #cetak kelas hasil validasi
+    y_train_subset = y_train.loc[y_validasi_fold1.index]
+    combined_df_fold1 = pd.concat([y_train_subset.rename('target'), y_validasi_fold1], axis=1)
+    print(combined_df_fold1)
+
+    hasil_validasi = pd.concat([combined_df_fold1,combined_df_fold2])
+    print(hasil_validasi)
+
+    for index, value in hasil_validasi['validasi'].items():
+      y_train.loc[index] = value
+    print(y_train)
+
+    cm_validasi =  CM(hasil_validasi['target'], hasil_validasi['validasi'])
+    visualisasiCM(cm_validasi)
+    TN_validasi, FP_validasi, FN_validasi, TP_validasi = cm_validasi.ravel()
+    print(
+            'TN : ',TN_validasi,'\n'
+            'FP : ',FP_validasi,'\n'
+            'FN : ',FN_validasi,'\n'
+            'TP : ',TP_validasi,'\n'
+          )
+    akurasi_validasi = Akurasi(hasil_validasi['target'], hasil_validasi['validasi'])
+    print("Akurasi validasi : ", akurasi_validasi)
+    presisi_validasi = Presisi(hasil_validasi['target'], hasil_validasi['validasi'])
+    print("Presisi validasi : ", presisi_validasi)
+    recall_validasi = Recall(hasil_validasi['target'], hasil_validasi['validasi'])
+    print("Recall validasi : ", recall_validasi)
+    f1_validasi = F1(hasil_validasi['target'], hasil_validasi['validasi'])
+    print("F1 Score validasi : ", f1_validasi)
+    
+    acak_K = acakK()
+    maks_K = np.max(acak_K)
+    print("nilai k yang dihasilkan :", acak_K)
+
     #mencari ketetanggan terdekat
     terdekat, indeks = jarakTerdekat(X_test, X_train, y_train, maks_K)
-
-    #prediksi kelas
-    #y_pred = Prediksi(X_train, y_train, X_test, k)
     # Melakukan klasifikasi menggunakan kNN untuk setiap nilai k
     y_pred = semuaPrediksi(acak_K, X_train, y_train, X_test)
-    
-
     # mencari jarak terdekat
     hasil_jarak_terdekat = hasilJarakTerdekat(X_test, y_train, terdekat, indeks)    
-    
     #konversi data frame
     df_hasil_jarak_terdekat = pd.DataFrame(hasil_jarak_terdekat, columns=["Testing", "Training", "Jarak", "Kelas"])
     print(df_hasil_jarak_terdekat)
 
-    # Membuat dictionary kolom
-    kolom_prediksi = ["K" + str(val) for val in acak_K]
-    print(kolom_prediksi)
-    # Membuat dataframe
-    prediksi = pd.DataFrame(np.transpose(y_pred), columns=kolom_prediksi)
-    print(prediksi)
-
-    klasifikasi = Klasifikasi(X_test, prediksi, y_test)
+    kolom_prediksi = ["K" + str(val) for val in acak_K] # Membuat dictionary kolom
+    prediksi = pd.DataFrame(np.transpose(y_pred), columns=kolom_prediksi) # Membuat dataframe
+    klasifikasi = Klasifikasi(X_test, prediksi, y_test) # Hasil klasifikasi
     print(klasifikasi)
 
-    print(klasifikasi.iloc[:,0])
-    print(klasifikasi.shape[1])
-        
-    akurasi = []
-    presisi = []
-    recall = []
-    f1 = []
-    cm = []
-    for i in range(prediksi.shape[1]):
-        nilai_akurasi = Akurasi(y_test, prediksi.iloc[:,i])
-        nilai_presisi = Presisi(y_test, prediksi.iloc[:,i])
-        nilai_recall = Recall(y_test, prediksi.iloc[:,i])
-        nilai_f1 = F1(y_test, prediksi.iloc[:,i])
-        nilai_cm = CM(y_test, prediksi.iloc[:,i])
-        akurasi.append(nilai_akurasi)
-        presisi.append(nilai_akurasi)
-        recall.append(nilai_akurasi)
-        f1.append(nilai_akurasi)
-        cm.append(nilai_cm)
+    akurasi, presisi, recall, f1, cm = Metrik(y_test, prediksi)
+    print(cm)
+    visualisasiCMklasifikasi(cm, acak_K)
+
+    TN, FP, FN, TP, T, F = nilaiCM(cm)
+
+    nilai_cm = pd.DataFrame({'k': acak_K, 'TN': TN, 'FP': FP, 'FN': FN, 'TP': TP, 'T': T, 'F': F})
+
+    print("Nilai prediksi berdasarkan matriks konfusi")
+    print(nilai_cm)
     
+    print("Mengurutkan K berdasarkan nilai True terbaik")
+    print(nilai_cm.sort_values(by='T', ascending=False))
+
     metrik = pd.DataFrame({'k': acak_K,'akurasi': akurasi, 'presisi': presisi, 'recall': recall, 'f1': f1})
     print(metrik)
-    print(cm)
-
-    '''
-    df_klasifikasi = pd.DataFrame(klasifikasi, columns=["Testing", "Kelas", "Target"])
-    print(df_klasifikasi)
-    
-    #metrik evaluasi
-    akurasi = Akurasi(y_test, y_pred)
-    presisi = Presisi(y_test, y_pred)
-    recall = Recall(y_test, y_pred)
-    f1 = F1(y_test, y_pred)
-    cm = CM(y_test, y_pred)
-    TN, FP, FN, TP = cm.ravel()
-    print("Metrik Evaluasi")
-    print("Akurasi\t\t: ", akurasi)
-    print("Presisi\t\t: ", presisi)
-    print("Recall\t\t: ", recall)
-    print("F1-score\t: ", f1)
-    print("Matriks Konfusi\t:\n", cm)
-''' 
-'''
-   #menjalankan algortima KNN
-    y_pred, jarak, terdekat, indeks = knn(X_train, y_train, X_test, k)
-
-    hasil_jarak_terdekat = [] #u/ menyimpan data hasil perhitungan jarak terdekat
-    klasifikasi = [] #u/ menyimpan data klasifikasi
-    for i in range(len(X_test)):
-        baris = [X_test.index[i], y_pred[i], y_test.values[i]] #kombinasi index data testing dengan hasil prediksi
-        klasifikasi.append(baris) #disimpan dalam variabel klasifikasi
-        for j in range(k):
-            ii = indeks[i][j] #indeks
-            #mendapatkan nilai indeks, jarak dan kelas
-            baris = [X_test.index[i], ii , np.round(terdekat[i][j],2), dataset.Y[ii]]
-            #menggabungkan nilai diatas
-            hasil_jarak_terdekat.append(baris)
-
-    #konversi data frame
-    df_hasil_jarak_terdekat = pd.DataFrame(hasil_jarak_terdekat, columns=["Testing", "Training", "Jarak", "Kelas"])
-    print(df_hasil_jarak_terdekat)
-
-    df_klasifikasi = pd.DataFrame(klasifikasi, columns=["Testing", "Kelas", "Target"])
-    print(df_klasifikasi)
-
-    # Menghitung dan mencetak metrik evaluasi
-    print("Metrik Evaluasi")
-    print(f"Akurasi\t\t: {accuracy_score(y_test, y_pred):.2f}")
-    print(f"Presisi\t\t: {precision_score(y_test, y_pred):.2f}")
-    print(f"Recall\t\t: {recall_score(y_test, y_pred):.2f}")
-    print(f"F1-score\t: {f1_score(y_test, y_pred):.2f}")
-    cm = confusion_matrix(y_test, y_pred)
-    TN, FP, FN, TP = cm.ravel()
-    print("Matriks Konfusi:\n", cm)
-    # Mencetak perbandingan prediksi benar dan prediksi salah
-    print("Jumlah prediksi benar (True)\t:", TN + TP)
-    print("Jumlah prediksi salah (False)\t:", FP + FN)
-'''

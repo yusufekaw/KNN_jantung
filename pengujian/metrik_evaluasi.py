@@ -103,16 +103,37 @@ def visualisaiMetrik(metrik):
     # Menampilkan plot
     plt.show()
 
-def visualisasiCM(cm, acak_K):
+def visualisasiCMklasifikasi(cm, acak_K):
     # Mengatur ukuran dan layout
     fig, axes = plt.subplots(nrows=1, ncols=len(cm), figsize=(15, 4))
 
     # Memvisualisasikan setiap matriks CM
     for i, (matrix, k) in enumerate(zip(cm, acak_K)):
         ax = axes[i]
-        sns.heatmap(matrix, annot=True, fmt="d", cmap='Blues', cbar=False, ax=ax)
+        sns.heatmap(matrix, annot=True, fmt="d", cmap='Blues', cbar=False, ax=ax,
+            xticklabels=['0', '1'],   
+            yticklabels=['0', '1'])
         ax.set_title(f"Confusion Matrix k {k}")
+        ax.set_xlabel ('prediksi')       
+        ax.set_ylabel ('aktual')    
 
     # Menampilkan plot
     plt.tight_layout()
+    plt.show()
+    print()
+
+def visualisasiCM(cm):
+    # Membuat heatmap confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.set(font_scale=1.4)  # Atur skala font
+    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', 
+                xticklabels=['0', '1'], 
+                yticklabels=['0', '1'])
+
+    # Menambahkan label pada sumbu
+    plt.xlabel('Prediksi')
+    plt.ylabel('Aktual')
+    plt.title('Confusion Matrix')
+
+    # Menampilkan plot
     plt.show()

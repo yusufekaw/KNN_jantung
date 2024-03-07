@@ -8,7 +8,7 @@ def ambilData():
     # Path ke file dataset
     #path = "dataset/heart.csv"
     # Membaca dataset menggunakan Pandas
-    dataset = pd.read_csv("E:\projects\python\KNN_jantung\data\dataset\heart.csv")
+    dataset = pd.read_csv("data/dataset/heart.csv")
     return dataset
 
 #Informasi kolom bertipe data object
@@ -39,6 +39,7 @@ def MinMax(dataset):
     scaler = MinMaxScaler()
     data_normalisasi = dataset.apply(lambda x: scaler.fit_transform(x.values.reshape(-1, 1)).flatten())
     data_normalisasi = np.round(data_normalisasi,2)
+    data_normalisasi['HeartDisease'] = data_normalisasi['HeartDisease'].astype(int)
     return data_normalisasi
 
 #Fitur Mapping : Mengubah nama fitur
