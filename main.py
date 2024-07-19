@@ -9,26 +9,35 @@ import random
 
 # Main program
 if __name__ == '__main__':
+
+    # Load dataset
+    dataset = ambilData() 
     
-    dataset = ambilData() # Load dataset
-    
+    # menampilkan dataset
     print ("\t\tHasil Import Dataset") 
-    print (dataset) # menampilkan dataset
+    print (dataset) 
 
+    #informasi kolom dataset
     print("\t\tInformasi Kolom dataset")
-    dataset.info() #informasi kolom dataset
+    dataset.info() 
 
+     # menampilkan informasi kolom kategorikal (object)
     print("\t\tInformasi Kolom kategorikal")
-    cetak_kolom_kategorikal(dataset) # menampilkan informasi kolom kategorikal (object)
+    cetak_kolom_kategorikal(dataset)
 
-    dataset = labelEncode(dataset) # encoding nilai kategorikal menjadi numerikal
+    # encoding nilai kategorikal menjadi numerikal
+    dataset = labelEncode(dataset) 
     
+    # menampilkan dataset yang telah diencoding
     print ("\t\tDataset Yang Telah Diencoding")
-    print (dataset) # menampilkan dataset yang telah diencoding
+    print (dataset) 
 
-    dataset = MinMax(dataset) # Normalisasi dataset
+    # Normalisasi dataset
+    dataset = MinMax(dataset) 
+
+    # menampilkan dataset yang telah dinormalisasi
     print ("\t\tDataset Yang Telah dinormalisasi")
-    print (dataset) # menampilkan dataset yang telah dinormalisasi
+    print (dataset) 
 
     kolom_target = 'HeartDisease' #membuang kolom HeartDisease , digunakan sebagai target
     #split data training dan testing
